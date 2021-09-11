@@ -1,49 +1,49 @@
 //运算选项
 
-bool solving_problem1_num_list=false;	//⭐输出第一问供应商S的重要性排名
+bool solving_problem1_num_list=false;		//⭐输出第一问供应商S的重要性排名
 bool solving_problem1_type=false;		//在输出排名的情况下配合输出材料类型
 bool solving_problem1_score=false;		//⭐在不输出排名的情况下输出score列表，结合MatLab生成直观图线
 bool solving_problem1_pro=false;		//在不输出排名的情况下输出pro列表
-bool solving_problem1=true;				//输出第一题答案相关数据(常为true影响可忽略不计)
+bool solving_problem1=true;			//输出第一题答案相关数据(常为true影响可忽略不计)
 
 bool solving_problem2 = true;			//⭐输出第二问以及之后的A文件答案，在第四题中作为平滑处理的开关
 bool solving_problem3 = false;			//⭐按照第三问的方式计算答案
 bool trust_is_related = true;			//信任度是否和供应商评分有关(可证明应常为true)
-bool finding_line=true;					//输出划线的合理估计位置
-int line__ = solving_problem3?42:34;	//根据对合理估计位置的计算和matlab对于排序后score绘制的图线设置划分排名位置
+bool finding_line=true;				//输出划线的合理估计位置
+int line__ = solving_problem3?42:34;		//根据对合理估计位置的计算和matlab对于排序后score绘制的图线设置划分排名位置
 
 bool solving_problem4 = true;			//⭐按照第四问计算答案，【自带改参】，且含一个额外参数自动求解problem4
 int anss4 = 28200;						//求解最大产能的结果
 
-bool output_in_file=true;				//⭐文件输出
+bool output_in_file=true;			//⭐文件输出
 
 
 //调试开关
-bool outer_program = false;				//外部程序交互开关
-bool debuging = false;					//部分调试代码开关
+bool outer_program = false;			//外部程序交互开关
+bool debuging = false;				//部分调试代码开关
 bool debug_input_ask = false;			//调试输入订货量数据
 bool debug_input_get = false;			//调试输入供货量数据
-bool debug_pro_1 = false;				//调试第一次处理
-bool debug_output1 = false;				//输出score倒数数据
-bool debug_por15 = false;				//在粗处理后输出debug数据
+bool debug_pro_1 = false;			//调试第一次处理
+bool debug_output1 = false;			//输出score倒数数据
+bool debug_por15 = false;			//在粗处理后输出debug数据
 
 
 
 
 //通过计算得出的系数列表
-bool using_trust = true;				//有无计算信用分对供应商评分的影响
-double power_trust = 1;					//信用分对供应商评分的重要程度
-bool using_sumup = true;				//有无计算订单总数对供应商评分的重要程度
-double power_sumup1 = 100;				//反映惩罚系数对供应商评分的重要程度
-double power_sumup2 = 150;				//反映少宽容系数对供应商评分的重要程度
-double tanxingxishu = 1.12;				//根据剩余生产力计算推的的生产弹性系数
+bool using_trust = true;			//有无计算信用分对供应商评分的影响
+double power_trust = 1;				//信用分对供应商评分的重要程度
+bool using_sumup = true;			//有无计算订单总数对供应商评分的重要程度
+double power_sumup1 = 100;			//反映惩罚系数对供应商评分的重要程度
+double power_sumup2 = 150;			//反映少宽容系数对供应商评分的重要程度
+double tanxingxishu = 1.12;			//根据剩余生产力计算推的的生产弹性系数
 
 
 
 //(非)绝对排序模式
-#define SCORE 1							//综合结果
-#define TRUST 2							//绝对信任
-#define SUMUP 3							//绝对到货
+#define SCORE 1					//综合结果
+#define TRUST 2					//绝对信任
+#define SUMUP 3					//绝对到货
 const int MODEL=SCORE;
 
 
@@ -73,13 +73,13 @@ typedef vector<pii> vpii;
 //常用代码块
 #define putt(x) cerr<<#x<<" = "<<(x)<<endl;
 #define MAX 100007
-const double MOD = 1000000007;	//模数,常用的还有 998244353;
+const double MOD = 1000000007;		//模数,常用的还有 998244353;
 const double eps = 1e-8;		//保留6位小数的精度,保留k位小数时一般取1e-(k+2);
 
 
 //题中常量
-#define MAX_S 403				//供货商上限
-#define MAX_W 241				//周序号上限
+#define MAX_S 403			//供货商上限
+#define MAX_W 241			//周序号上限
 
 
 //供应商抽象数据结构————参数列表
@@ -87,22 +87,22 @@ const double eps = 1e-8;		//保留6位小数的精度,保留k位小数时一般�
 typedef struct _supplier_
 {
 	int num;
-	char ask_material_type;					//材料类型
-	char get_material_type;					//材料类型
+	char ask_material_type;				//材料类型
+	char get_material_type;				//材料类型
 	double ask_data[MAX_W]		={};		//表中订货量数据
 	double get_data[MAX_W]		={};		//表中供货量数据
 	double ask_pre[MAX_W]		={};		//订货量前缀和
 	double get_pre[MAX_W]		={};		//供货量前缀和
-	double pro[MAX_W]			={};		//产能和
-	double ask_sum				=0.;		//订货量总和
-	double get_sum				=0.;		//供货量总和
-	double pro_sum				=0.;		//产能总和
-	double owe_val				=0.;		//缺省值
-	double score				=0.;		//供应商评分
-	double score2				=0.;		//供应商评分结果(目前是废案)
-	double delta				=0.;		//未完成订单缺省材料的总和
-	double bill					=0.;		//订单数
-	double trust				=0.;		//征信度
+	double pro[MAX_W]		={};		//产能和
+	double ask_sum			=0.;		//订货量总和
+	double get_sum			=0.;		//供货量总和
+	double pro_sum			=0.;		//产能总和
+	double owe_val			=0.;		//缺省值
+	double score			=0.;		//供应商评分
+	double score2			=0.;		//供应商评分结果(目前是废案)
+	double delta			=0.;		//未完成订单缺省材料的总和
+	double bill			=0.;		//订单数
+	double trust			=0.;		//征信度
 }supplier_,week_;
 
 
@@ -194,11 +194,11 @@ int main(int argc,char*argv[])
 		//修改运行模式接口参数
 		solving_problem1_num_list=false;			//输出供应商S的重要性排名
 		solving_problem1_score=false;				//在不输出排名的情况下输出score列表
-		solving_problem1_pro=false;					//在不输出排名的情况下输出pro列表
-		solving_problem1=false;						//输出第一题答案相关数据
+		solving_problem1_pro=false;				//在不输出排名的情况下输出pro列表
+		solving_problem1=false;					//输出第一题答案相关数据
 
-		solving_problem3 = false;					//按照第三问计算答案
-		line__ = 402 ;								//设置划分排名位置
+		solving_problem3 = false;				//按照第三问计算答案
+		line__ = 402 ;						//设置划分排名位置
 
 		//修改预设参数
 		power_trust=1;
@@ -315,7 +315,7 @@ int main(int argc,char*argv[])
 	// return 0;
 
 
-	auto zhuanhuabi=[](char ch)		//转化比
+	auto zhuanhuabi=[](char ch)		//返回转化比
 	{
 		double ret;
 		switch(ch)
@@ -329,7 +329,7 @@ int main(int argc,char*argv[])
 	};
 
 
-	auto zhuanhuaxishu=[](char ch)		//转化系数
+	auto zhuanhuaxishu=[](char ch)		//计算转化系数
 	{
 		double ret;
 		switch(ch)
@@ -628,7 +628,7 @@ p4_next://解决第四题的标签
 
 
 
-
+	//debug_output1输出在处理第一问时的调试信息
 	if(debug_output1)
 	{
 		for(int i=1;i<MAX_S;i++)
